@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# data
+/seq2seq/data
+/seq2seq/working_dir
