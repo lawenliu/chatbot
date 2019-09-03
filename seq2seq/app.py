@@ -24,15 +24,15 @@ def reply():
     req_msg = request.form['msg']
     res_msg = '^_^'
     print(req_msg)
-    print(''.join([f+' ' for fh in req_msg for f in fh]))
     req_msg=''.join([f+' ' for fh in req_msg for f in fh])
+    print(req_msg)
     res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, req_msg )
     
     print(res_msg)
-    res_msg = res_msg.replace('_UNK', '^_^')
-    res_msg=res_msg.strip()
+    res_msg = res_msg.replace('__UNK__', '_^_^_')
+    res_msg = res_msg.strip()
     
-    # 如果接受到的内容为空，则给出相应的恢复
+    # if thee result is empty, return default message
     if res_msg == '':
       res_msg = '请与我聊聊天吧'
 
@@ -45,8 +45,6 @@ def index():
 
 '''
 Intialize seq2seqModel
-    1. 调用执行器的主程序
-    2. 生成一个在线decode进程，来提供在线聊天服务
 '''
 #_________________________________________________________________
 import tensorflow as tf
