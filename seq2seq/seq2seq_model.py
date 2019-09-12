@@ -25,7 +25,7 @@ import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-import prepareData
+import prepare_data
 
 import copy
 
@@ -165,7 +165,7 @@ class Seq2SeqModel(object):
         self.updates.append(opt.apply_gradients(
             zip(clipped_gradients, params), global_step=self.global_step))
 
-    self.saver = tf.train.Saver(tf.all_variables())
+    self.saver = tf.compat.v1.train.Saver(tf.global_variables())
 
   def step(self, session, encoder_inputs, decoder_inputs, target_weights,
            bucket_id, forward_only):
@@ -252,13 +252,13 @@ class Seq2SeqModel(object):
       encoder_input, decoder_input = random.choice(data[bucket_id])
 
       # Encoder inputs are padded and then reversed.
-      encoder_pad = [prepareData.PAD_ID] * (encoder_size - len(encoder_input))
+      encoder_pad = [prepare_data.PAD_ID] * (encoder_size - len(encoder_input))
       encoder_inputs.append(list(reversed(encoder_input + encoder_pad)))
 
       # Decoder inputs get an extra "GO" symbol, and are padded then.
       decoder_pad_size = decoder_size - len(decoder_input) - 1
-      decoder_inputs.append([prepareData.GO_ID] + decoder_input +
-                            [prepareData.PAD_ID] * decoder_pad_size)
+      decoder_inputs.append([prepare_data.GO_ID] + decoder_input +
+                            [prepare_data.PAD_ID] * decoder_pad_size)
 
     # Now we create batch-major vectors from the data selected above.
     batch_encoder_inputs, batch_decoder_inputs, batch_weights = [], [], []
@@ -282,7 +282,7 @@ class Seq2SeqModel(object):
         # The corresponding target is decoder_input shifted by 1 forward.
         if length_idx < decoder_size - 1:
           target = decoder_inputs[batch_idx][length_idx + 1]
-        if length_idx == decoder_size - 1 or target == prepareData.PAD_ID:
+        if length_idx == decoder_size - 1 or target == prepare_data.PAD_ID:
           batch_weight[batch_idx] = 0.0
       batch_weights.append(batch_weight)
     return batch_encoder_inputs, batch_decoder_inputs, batch_weights

@@ -25,14 +25,14 @@ import os
 import random
 import sys
 import time
-import prepareData
+import prepare_data
 
 import numpy as np
 from six.moves import xrange  
 import tensorflow as tf
 
 from configparser import SafeConfigParser
-import prepareData
+import prepare_data
 import seq2seq_model
     
 gConfig = {}
@@ -68,7 +68,7 @@ def read_data(source_path, target_path, max_size=None):
       len(target) < _buckets[n][1]; source and target are lists of token-ids.
   """
   data_set = [[] for _ in _buckets]
-  with tf.gfile.GFile(source_path, mode="r") as source_file:
+  with tf.io.gfile.GFile(source_path, mode="r") as source_file:
     with tf.gfile.GFile(target_path, mode="r") as target_file:
       source, target = source_file.readline(), target_file.readline()
       counter = 0
@@ -79,7 +79,7 @@ def read_data(source_path, target_path, max_size=None):
           sys.stdout.flush()
         source_ids = [int(x) for x in source.split()]
         target_ids = [int(x) for x in target.split()]
-        target_ids.append(prepareData.EOS_ID)
+        target_ids.append(prepare_data.EOS_ID)
         for bucket_id, (source_size, target_size) in enumerate(_buckets):
           if len(source_ids) < source_size and len(target_ids) < target_size:
             data_set[bucket_id].append([source_ids, target_ids])
@@ -111,7 +111,7 @@ def create_model(session, forward_only):
 def train():
  # prepare dataset
   print("Preparing data in %s" % gConfig['working_directory'])
-  enc_train, dec_train, enc_dev, dec_dev, _, _ = prepareData.prepare_custom_data(gConfig['working_directory'],gConfig['train_enc'],gConfig['train_dec'],gConfig['test_enc'],gConfig['test_dec'],gConfig['enc_vocab_size'],gConfig['dec_vocab_size'])
+  enc_train, dec_train, enc_dev, dec_dev, _, _ = prepare_data.prepare_custom_data(gConfig['working_directory'],gConfig['train_enc'],gConfig['train_dec'],gConfig['test_enc'],gConfig['test_dec'],gConfig['enc_vocab_size'],gConfig['dec_vocab_size'])
 
  
   # setup config to use BFC allocator
@@ -218,14 +218,14 @@ def init_session(sess, conf='seq2seq.ini'):
     enc_vocab_path = os.path.join(gConfig['working_directory'],"vocab%d.enc" % gConfig['enc_vocab_size'])
     dec_vocab_path = os.path.join(gConfig['working_directory'],"vocab%d.dec" % gConfig['dec_vocab_size'])
 
-    enc_vocab, _ = prepareData.initialize_vocabulary(enc_vocab_path)
-    _, rev_dec_vocab = prepareData.initialize_vocabulary(dec_vocab_path)
+    enc_vocab, _ = prepare_data.initialize_vocabulary(enc_vocab_path)
+    _, rev_dec_vocab = prepare_data.initialize_vocabulary(dec_vocab_path)
 
     return sess, model, enc_vocab, rev_dec_vocab
 
 def decode_line(sess, model, enc_vocab, rev_dec_vocab, sentence):
     # Get token-ids for the input sentence.
-    token_ids = prepareData.sentence_to_token_ids(tf.compat.as_bytes(sentence), enc_vocab)
+    token_ids = prepare_data.sentence_to_token_ids(tf.compat.as_bytes(sentence), enc_vocab)
 
     # Which bucket does it belong to?
     bucket_id = min([b for b in xrange(len(_buckets)) if _buckets[b][0] > len(token_ids)])
@@ -240,8 +240,8 @@ def decode_line(sess, model, enc_vocab, rev_dec_vocab, sentence):
     outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
 
     # If there is an EOS symbol in outputs, cut them at that point.
-    if prepareData.EOS_ID in outputs:
-        outputs = outputs[:outputs.index(prepareData.EOS_ID)]
+    if prepare_data.EOS_ID in outputs:
+        outputs = outputs[:outputs.index(prepare_data.EOS_ID)]
 
     return " ".join([tf.compat.as_str(rev_dec_vocab[output]) for output in outputs])
 
